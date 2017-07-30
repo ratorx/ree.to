@@ -22,5 +22,7 @@
     "type": "git",
     "url": "https://github.com/ratorx/ree.to"
   },
-  "dependencies": {}
+  "dependencies": {
+    "express": "^4.15.3"
+  }
 }
