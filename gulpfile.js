@@ -93,16 +93,14 @@ gulp.task('browserSync-local', function() {
 
 // Dev task with browserSync
 gulp.task('dev', ['browserSync', 'less', 'minify-css', 'minify-js'], function() {
-    gulp.watch('public/less/*.less', ['less']);
-    gulp.watch('public.css/*.css', ['minify-css']);
+    gulp.watch('public/less/*.less', ['minify-css']);
     gulp.watch('public/js/*.js', ['minify-js']);
     // Reloads the browser whenever HTML files change
     gulp.watch('public/*.html', browserSync.reload);
 });
 
 gulp.task('dev-local', ['browserSync-local', 'less', 'minify-css', 'minify-js'], function() {
-    gulp.watch('public/less/*.less', ['less']);
-    gulp.watch('public/css/*.css', ['minify-css']);
+    gulp.watch('public/less/*.less', ['minify-css']);
     gulp.watch('public/js/*.js', ['minify-js']);
     // Reloads the browser whenever HTML files change
     gulp.watch('public/*.html', browserSync.reload);
