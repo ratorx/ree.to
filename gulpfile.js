@@ -20,8 +20,7 @@ var banner = ['/*!\n',
 // Compile LESS files from /less into /css
 gulp.task('less', function() {
     var f = filter(['*', '!mixins.less', '!variables.less']);
-    return gulp.src('less/*.less')
-        .pipe(f)
+    return gulp.src('less/reeto.less')
         .pipe(less())
         .pipe(header(banner, { pkg: pkg }))
         .pipe(gulp.dest('css'))
@@ -32,7 +31,7 @@ gulp.task('less', function() {
 
 // Minify compiled CSS
 gulp.task('minify-css', ['less'], function() {
-    return gulp.src('css/freelancer.css')
+    return gulp.src('css/reeto.css')
         .pipe(cleanCSS({ compatibility: 'ie8' }))
         .pipe(rename({ suffix: '.min' }))
         .pipe(gulp.dest('css'))
@@ -81,11 +80,29 @@ gulp.task('browserSync', function() {
         server: {
             baseDir: ''
         },
+        open: false
+    })
+})
+
+gulp.task('browserSync-local', function() {
+    browserSync.init({
+        server: {
+            baseDir: ''
+        }
     })
 })
 
 // Dev task with browserSync
 gulp.task('dev', ['browserSync', 'less', 'minify-css', 'minify-js'], function() {
+    gulp.watch('less/*.less', ['less']);
+    gulp.watch('css/*.css', ['minify-css']);
+    gulp.watch('js/*.js', ['minify-js']);
+    // Reloads the browser whenever HTML or JS files change
+    gulp.watch('*.html', browserSync.reload);
+    gulp.watch('js/**/*.js', browserSync.reload);
+});
+
+gulp.task('dev-local', ['browserSync-local', 'less', 'minify-css', 'minify-js'], function() {
     gulp.watch('less/*.less', ['less']);
     gulp.watch('css/*.css', ['minify-css']);
     gulp.watch('js/*.js', ['minify-js']);
