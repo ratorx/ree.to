@@ -1,9 +1,11 @@
 const
+    compression = require("compression"),
     express = require("express"),
     // https = require("https"),
     path = require("path");
 
     var app = express();
+    app.use(compression())
 
     // Main Page
     app.use("/", express.static(path.join(__dirname, "public")));
