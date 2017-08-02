@@ -23,6 +23,7 @@
     "url": "https://github.com/ratorx/ree.to"
   },
   "dependencies": {
+    "compression": "^1.7.0",
     "express": "^4.15.3"
   }
 }
