@@ -25,5 +25,8 @@
   "dependencies": {
     "compression": "^1.7.0",
     "express": "^4.15.3"
+  },
+  "scripts": {
+      "start": "gulp && node server.js"
   }
 }
