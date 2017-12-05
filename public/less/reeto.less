@@ -142,8 +142,12 @@ header {
 }
 
 .progress {
+    @height: 28px;
     position: relative;
-	height: 25px;
+	height: @height;
+    p {
+        line-height: @height;
+    }
 }
 
 .progress > .progress-type {
