@@ -55,6 +55,11 @@ func main() {
 		http.ServeFile(w, r, "public/index.html")
 	})
 
+	// Config init
+	router.GET("/init", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		http.ServeFile(w, r, "public/init")
+	})
+
 	// Handle 404
 	router.NotFound = func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "public/404.html")

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+cd $HOME
+# Install required packages
+sudo pacman -Sy openssh git
+
+# Clone .dotfiles
+ssh-keygen -t rsa
+git clone git@bitbucket.org:ratorx/config.git .dotfiles
+cd .dotfiles
+git remote set-url origin git@bitbucket.org:ratorx/config.git
+echo "Add SSH key to bitbucket"
