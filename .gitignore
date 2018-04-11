@@ -4,5 +4,8 @@ node_modules
 *.min*
 css/
 
+# Goland folders
+.idea/
+
 # Testing folder
 .dev/
