@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 
 	"flag"
 
@@ -49,14 +48,7 @@ func init() {
 	flag.Parse()
 }
 
-func setupRedirectRoutes(router *httprouter.Router) {
-	router.GET("/*", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		redirectURL := fmt.Sprintf("https://%s%s", strings.Replace(r.Host, fmt.Sprintf(":%v", cfg.httpPort), fmt.Sprintf(":%v", cfg.httpsPort), 1), r.RequestURI)
-		http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
-	})
-}
-
-func setupMainRoutes(router *httprouter.Router) {
+func setupRoutes(router *httprouter.Router) {
 	// Website
 	// Workaround to allow other routes
 	router.ServeFiles("/css/*filepath", http.Dir("public/css"))
@@ -81,18 +73,15 @@ func setupMainRoutes(router *httprouter.Router) {
 }
 
 func main() {
-	httpsRouter := httprouter.New()
-	setupMainRoutes(httpsRouter)
-
-	httpRouter := httprouter.New()
-	setupRedirectRoutes(httpRouter)
+	router := httprouter.New()
+	setupRoutes(router)
 
 	if cfg.certPath != "" && cfg.keyPath != "" {
 		glog.Infof("Listening for HTTPS on %v", cfg.httpsPort)
 		go func() {
-			glog.Error(http.ListenAndServeTLS(fmt.Sprintf(":%v", cfg.httpsPort), cfg.certPath, cfg.keyPath, httpsRouter))
+			glog.Error(http.ListenAndServeTLS(fmt.Sprintf(":%v", cfg.httpsPort), cfg.certPath, cfg.keyPath, router))
 		}()
 	}
 	glog.Infof("Listening for HTTP on %v", cfg.httpPort)
-	glog.Error(http.ListenAndServe(fmt.Sprintf(":%v", cfg.httpPort), httpRouter))
+	glog.Error(http.ListenAndServe(fmt.Sprintf(":%v", cfg.httpPort), router))
 }
