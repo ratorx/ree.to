@@ -1,12 +1,31 @@
 #!/bin/bash
+# Arch Init script
+# Clones dotfiles repo
+#
 
-cd $HOME
+DOTFILE_DIR="$HOME/.dotfiles"
+DOTFILE_REPO="github.com/ratorx/dotfiles"
+
+set -e
+
 # Install required packages
-sudo pacman -Sy openssh git
+echo "Install required packages"
+sudo pacman -S git makepkg
 
 # Clone .dotfiles
-ssh-keygen -t rsa
-git clone git@bitbucket.org:ratorx/config.git .dotfiles
-cd .dotfiles
-git remote set-url origin git@bitbucket.org:ratorx/config.git
-echo "Add SSH key to bitbucket"
+echo "Clone dotfiles to $DOTFILE_DIR"
+git clone "https://$DOTFILE_REPO.git" "$DOTFILE_DIR"
+cd "$DOTFILE_DIR"
+
+# Parse repo to get SSH URL
+IFS="/" read -r -a repo <<< "$DOTFILE_REPO"
+git remote set-url origin "git@${dotfiles[0]}:${dotfiles[1]}/${dotfiles[2]}.git"
+echo "Remember to update/add SSH key to ${dotfiles[0]}"
+
+# Setup AUR
+echo "Installing yay"
+git clone https://aur.archlinux.org/yay-bin.git /tmp/yay
+cd /tmp/yay
+makepkg -sic
+cd "$HOME"
+rm -rf /tmp/yay
