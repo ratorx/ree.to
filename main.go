@@ -5,13 +5,17 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
+	"flag"
+
+	"github.com/golang/glog"
 	"github.com/julienschmidt/httprouter"
 )
 
 type config struct {
-	httpPort  uint16
-	httpsPort uint16
+	httpPort  uint
+	httpsPort uint
 	certPath  string
 	keyPath   string
 }
@@ -37,17 +41,24 @@ func getConfigValue(env string, def string) string {
 }
 
 func init() {
-	cfg.httpPort = getPort("CV_HTTP_PORT", 8080)
-	cfg.httpsPort = getPort("CV_HTTPS_PORT", 8443)
-	cfg.certPath = getConfigValue("CV_CERT_PATH", "")
-	cfg.keyPath = getConfigValue("CV_KEY_PATH", "")
+	flag.UintVar(&cfg.httpPort, "http.port", 8080, "HTTP port to listen on")
+	flag.UintVar(&cfg.httpsPort, "https.port", 8443, "HTTPS port to listen on")
+	flag.StringVar(&cfg.certPath, "https.cert", "", "Path to SSL fullchain certificate")
+	flag.StringVar(&cfg.keyPath, "https.key", "", "Path to SSL private key")
+
+	flag.Parse()
 }
 
-func main() {
-	router := httprouter.New()
+func setupRedirectRoutes(router *httprouter.Router) {
+	router.GET("/test", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		redirectURL := fmt.Sprintf("https://%s%s", strings.Replace(r.Host, fmt.Sprintf(":%v", cfg.httpPort), fmt.Sprintf(":%v", cfg.httpsPort), 1), r.RequestURI)
+		http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
+	})
+}
 
-	// File Server
-	// Workaround to allow other paths
+func setupMainRoutes(router *httprouter.Router) {
+	// Website
+	// Workaround to allow other routes
 	router.ServeFiles("/css/*filepath", http.Dir("public/css"))
 	router.ServeFiles("/img/*filepath", http.Dir("public/img"))
 	router.ServeFiles("/js/*filepath", http.Dir("public/js"))
@@ -55,20 +66,33 @@ func main() {
 		http.ServeFile(w, r, "public/index.html")
 	})
 
-	// Config init
-	router.GET("/init", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		http.ServeFile(w, r, "public/init")
-	})
-
-	// Handle 404
+	// 404
 	router.NotFound = func(w http.ResponseWriter, r *http.Request) {
+		glog.Warning("404 on path %s", r.URL.EscapedPath())
 		http.ServeFile(w, r, "public/404.html")
 	}
 
+	// Utilities
+
+	// Config init script
+	router.GET("/init", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		http.ServeFile(w, r, "public/init")
+	})
+}
+
+func main() {
+	httpsRouter := httprouter.New()
+	setupMainRoutes(httpsRouter)
+
+	httpRouter := httprouter.New()
+	setupRedirectRoutes(httpRouter)
+
 	if cfg.certPath != "" && cfg.keyPath != "" {
+		glog.Infof("Listening for HTTPS on %v", cfg.httpsPort)
 		go func() {
-			fmt.Println(http.ListenAndServeTLS(fmt.Sprintf(":%v", cfg.httpsPort), cfg.certPath, cfg.keyPath, router))
+			glog.Error(http.ListenAndServeTLS(fmt.Sprintf(":%v", cfg.httpsPort), cfg.certPath, cfg.keyPath, httpsRouter))
 		}()
 	}
-	fmt.Println(http.ListenAndServe(fmt.Sprintf(":%v", cfg.httpPort), router))
+	glog.Infof("Listening for HTTP on %v", cfg.httpPort)
+	glog.Error(http.ListenAndServe(fmt.Sprintf(":%v", cfg.httpPort), httpRouter))
 }
