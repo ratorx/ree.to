@@ -22,10 +22,10 @@ type config struct {
 
 var cfg config
 
-func getPort(env string, def uint16) uint16 {
+func getPort(env string, def uint) uint {
 	if value, success := os.LookupEnv(env); success {
 		if port, err := strconv.Atoi(value); err == nil {
-			return uint16(port)
+			return uint(port)
 		}
 	}
 
@@ -41,16 +41,16 @@ func getConfigValue(env string, def string) string {
 }
 
 func init() {
-	flag.UintVar(&cfg.httpPort, "http.port", 8080, "HTTP port to listen on")
-	flag.UintVar(&cfg.httpsPort, "https.port", 8443, "HTTPS port to listen on")
-	flag.StringVar(&cfg.certPath, "https.cert", "", "Path to SSL fullchain certificate")
-	flag.StringVar(&cfg.keyPath, "https.key", "", "Path to SSL private key")
+	flag.UintVar(&cfg.httpPort, "http.port", getPort("CV_HTTP_PORT", 8080), "HTTP port to listen on")
+	flag.UintVar(&cfg.httpsPort, "https.port", getPort("CV_HTTPS_PORT", 8443), "HTTPS port to listen on")
+	flag.StringVar(&cfg.certPath, "https.cert", getConfigValue("CV_CERT_PATH", ""), "Path to SSL fullchain certificate")
+	flag.StringVar(&cfg.keyPath, "https.key", getConfigValue("CV_KEY_PATH", ""), "Path to SSL private key")
 
 	flag.Parse()
 }
 
 func setupRedirectRoutes(router *httprouter.Router) {
-	router.GET("/test", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	router.GET("/*", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		redirectURL := fmt.Sprintf("https://%s%s", strings.Replace(r.Host, fmt.Sprintf(":%v", cfg.httpPort), fmt.Sprintf(":%v", cfg.httpsPort), 1), r.RequestURI)
 		http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 	})
