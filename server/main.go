@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 
 	"flag"
 
 	"github.com/golang/glog"
 	"github.com/julienschmidt/httprouter"
+	"path"
 )
 
 type config struct {
@@ -33,7 +33,6 @@ func getPort(env string, def uint) uint {
 }
 
 func getConfigValue(env string, def string) string {
-	fmt.Println(strings.ToLower(env))
 	if value, success := os.LookupEnv(env); success {
 		return value
 	}
@@ -46,37 +45,41 @@ func init() {
 	flag.UintVar(&cfg.httpsPort, "https.port", getPort("CV_HTTPS_PORT", 8443), "HTTPS port to listen on")
 	flag.StringVar(&cfg.certPath, "https.cert", getConfigValue("CV_CERT_PATH", ""), "Path to SSL fullchain certificate")
 	flag.StringVar(&cfg.keyPath, "https.key", getConfigValue("CV_KEY_PATH", ""), "Path to SSL private key")
-
-	flag.Parse()
 }
 
-func setupRoutes(router *httprouter.Router) {
+func setupRoutes(router *httprouter.Router, publicDir string) {
 	// Website
 	// Workaround to allow other routes
-	router.ServeFiles("/css/*filepath", http.Dir("public/css"))
-	router.ServeFiles("/img/*filepath", http.Dir("public/img"))
-	router.ServeFiles("/js/*filepath", http.Dir("public/js"))
+	router.ServeFiles("/css/*filepath", http.Dir(path.Join(publicDir, "css")))
+	router.ServeFiles("/img/*filepath", http.Dir(path.Join(publicDir, "img")))
+	router.ServeFiles("/js/*filepath", http.Dir(path.Join(publicDir, "js")))
 	router.GET("/", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		http.ServeFile(w, r, "public/index.html")
+		http.ServeFile(w, r, path.Join(publicDir, "index.html"))
 	})
 
 	// 404
 	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		glog.Warning("404 on path %s", r.URL.EscapedPath())
-		http.ServeFile(w, r, "public/404.html")
+		http.ServeFile(w, r, path.Join(publicDir, "404.html"))
 	})
 
 	// Utilities
 
 	// Config init script
 	router.GET("/init", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		http.ServeFile(w, r, "public/init")
+		http.ServeFile(w, r, path.Join(publicDir, "init"))
 	})
 }
 
 func main() {
+    flag.Parse()
+
+	if flag.NArg() != 1 {
+		glog.Exit("usage: server <public_dir>")
+	}
+
 	router := httprouter.New()
-	setupRoutes(router)
+	setupRoutes(router, flag.Arg(0))
 
 	if cfg.certPath != "" && cfg.keyPath != "" {
 		glog.Infof("Listening for HTTPS on %v", cfg.httpsPort)
