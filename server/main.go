@@ -59,7 +59,7 @@ func setupRoutes(router *httprouter.Router, publicDir string) {
 
 	// 404
 	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		glog.Warning("404 on path %s", r.URL.EscapedPath())
+		glog.Warningf("404 on path %s", r.URL.EscapedPath())
 		http.ServeFile(w, r, path.Join(publicDir, "404.html"))
 	})
 
