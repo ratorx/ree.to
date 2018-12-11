@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"flag"
 
@@ -32,6 +33,7 @@ func getPort(env string, def uint) uint {
 }
 
 func getConfigValue(env string, def string) string {
+	fmt.Println(strings.ToLower(env))
 	if value, success := os.LookupEnv(env); success {
 		return value
 	}
@@ -59,10 +61,10 @@ func setupRoutes(router *httprouter.Router) {
 	})
 
 	// 404
-	router.NotFound = func(w http.ResponseWriter, r *http.Request) {
+	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		glog.Warning("404 on path %s", r.URL.EscapedPath())
 		http.ServeFile(w, r, "public/404.html")
-	}
+	})
 
 	// Utilities
 
