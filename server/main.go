@@ -8,9 +8,11 @@ import (
 
 	"flag"
 
+	"path"
+
+	"github.com/NYTimes/gziphandler"
 	"github.com/golang/glog"
 	"github.com/julienschmidt/httprouter"
-	"path"
 )
 
 type config struct {
@@ -72,7 +74,7 @@ func setupRoutes(router *httprouter.Router, publicDir string) {
 }
 
 func main() {
-    flag.Parse()
+	flag.Parse()
 
 	if flag.NArg() != 1 {
 		glog.Exit("usage: server <public_dir>")
@@ -80,13 +82,14 @@ func main() {
 
 	router := httprouter.New()
 	setupRoutes(router, flag.Arg(0))
+	handler := gziphandler.GzipHandler(router)
 
 	if cfg.certPath != "" && cfg.keyPath != "" {
 		glog.Infof("Listening for HTTPS on %v", cfg.httpsPort)
 		go func() {
-			glog.Error(http.ListenAndServeTLS(fmt.Sprintf(":%v", cfg.httpsPort), cfg.certPath, cfg.keyPath, router))
+			glog.Error(http.ListenAndServeTLS(fmt.Sprintf(":%v", cfg.httpsPort), cfg.certPath, cfg.keyPath, handler))
 		}()
 	}
 	glog.Infof("Listening for HTTP on %v", cfg.httpPort)
-	glog.Error(http.ListenAndServe(fmt.Sprintf(":%v", cfg.httpPort), router))
+	glog.Error(http.ListenAndServe(fmt.Sprintf(":%v", cfg.httpPort), handler))
 }
