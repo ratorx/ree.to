@@ -1,2 +1,5 @@
 https://dots.ree.to/*        https://github.com/ratorx/dotfiles/:splat
+https://dots.ree.to/         https://github.com/ratorx/dotfiles/
+
 https://raw.dots.ree.to/*    https://raw.githubusercontent.com/ratorx/dotfiles/master/:splat
+https://raw.dots.ree.to/     https://raw.githubusercontent.com/ratorx/dotfiles/master/README.md
