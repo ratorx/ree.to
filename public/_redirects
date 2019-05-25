@@ -1,6 +1,6 @@
 https://dots.ree.to/repo.git https://github.com/ratorx/dotfiles.git 200
 https://dots.ree.to/repo/*        https://github.com/ratorx/dotfiles/:splat 200
-https://dots.ree.to/repo.git/*        https://github.com/ratorx/dotfiles.git/:splat 200
+# https://dots.ree.to/repo.git/*        https://github.com/ratorx/dotfiles.git/:splat 200
 
 https://raw.dots.ree.to      https://raw.githubusercontent.com/ratorx/dotfiles/master/README.md
 https://raw.dots.ree.to/*    https://raw.githubusercontent.com/ratorx/dotfiles/master/:splat
