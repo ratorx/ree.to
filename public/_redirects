@@ -1,9 +1,10 @@
 # Dotfiles redirect
 # Raw repository files
-https://dots.ree.to           https://raw.githubusercontent.com/ratorx/dotfiles/master/README.md 200
-https://dots.ree.to/*         https://raw.githubusercontent.com/ratorx/dotfiles/master/:splat 200
+https://dots.ree.to           https://raw.githubusercontent.com/ratorx/dotfiles/master/README.md
+https://dots.ree.to/*         https://raw.githubusercontent.com/ratorx/dotfiles/master/:splat
 
 # Git cloneable URL
+# 200 code is a hack to make this work - doesn't work without it
 https://dots.ree.to/repo.git  https://github.com/ratorx/dotfiles.git 200
 https://dots.ree.to/repo/*    https://github.com/ratorx/dotfiles/:splat 200
 
